@@ -7,6 +7,7 @@ import { hri } from 'human-readable-ids';
 import Router from 'koa-router';
 
 import ClientManager from './lib/ClientManager';
+import AuthorizationEnforcer from './lib/Auth';
 
 const debug = Debug('localtunnel:server');
 
@@ -16,6 +17,7 @@ export default function(opt) {
     const validHosts = (opt.domain) ? [opt.domain] : undefined;
     const myTldjs = tldjs.fromUserSettings({ validHosts });
     const landingPage = opt.landing || 'https://localtunnel.github.io/www/';
+    const authEnforcer = opt.apikey ? new AuthorizationEnforcer(opt.apikey) : undefined;
 
     function GetClientIdFromHostname(hostname) {
         return myTldjs.getSubdomain(hostname);
@@ -54,17 +56,29 @@ export default function(opt) {
     app.use(router.allowedMethods());
 
     /**
+     * @param {object} ctx request context
      * @param {string} id requested ID; may not be respected if already exists.
-     * @param {string} host used for generating the new URL
-     * @returns {object}
      */
-    async function createNewClientWithID(id, host) {
+    async function createNewClientWithID(ctx, id) {
+        if (authEnforcer) {
+            try {
+                authEnforcer.verifyRequest(ctx);
+            } catch (err) {
+                ctx.status = 403;
+                ctx.body = {
+                    message: err.message,
+                };
+
+                return;
+            }
+        }
+
         debug('making new client with id %s', id);
         const info = await manager.newClient(id);
 
-        const url = `${schema}://${info.id}.${host}`;
+        const url = `${schema}://${info.id}.${ctx.request.host}`;
         info.url = url;
-        return info;
+        ctx.body = info;
     }
 
     // root endpoint
@@ -79,7 +93,7 @@ export default function(opt) {
 
         const isNewClientRequest = ctx.query['new'] !== undefined;
         if (isNewClientRequest) {
-            ctx.body = await createNewClientWithID(hri.random(), ctx.request.host);
+            await createNewClientWithID(ctx, hri.random());
             return;
         }
 
@@ -112,7 +126,7 @@ export default function(opt) {
             return;
         }
 
-        ctx.body = await createNewClientWithID(reqId, ctx.request.host);
+        await createNewClientWithID(ctx, reqId);
         return;
     });
 

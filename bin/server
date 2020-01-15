@@ -16,6 +16,7 @@ const argv = optimist
         default: false,
         describe: 'use this flag to indicate proxy over https'
     })
+    .boolean('secure')
     .options('port', {
         default: '80',
         describe: 'listen on this port for outside requests'
@@ -31,6 +32,11 @@ const argv = optimist
         default: 10,
         describe: 'maximum number of tcp sockets each client is allowed to establish at one time (the tunnels)'
     })
+    .options('require-auth', {
+        default: false,
+        describe: 'Enforce the use of an API key when creating tunnels.',
+    })
+    .boolean('require-auth')
     .argv;
 
 if (argv.help) {
@@ -38,10 +44,17 @@ if (argv.help) {
     process.exit();
 }
 
+if (argv['require-auth'] && !process.env['API_KEY']) {
+    console.error('error: The --require-auth flag was set, but no API_KEY was found.');
+    console.error('Ensure that an API_KEY environment variable is set.');
+    process.exit(1);
+}
+
 const server = CreateServer({
     max_tcp_sockets: argv['max-sockets'],
     secure: argv.secure,
     domain: argv.domain,
+    apikey: argv['require-auth'] && process.env['API_KEY'],
 });
 
 server.listen(argv.port, argv.address, () => {

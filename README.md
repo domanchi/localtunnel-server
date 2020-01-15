@@ -43,6 +43,12 @@ You will be assigned a URL similar to `heavy-puma-9.sub.example.com:1234`.
 
 If your server is acting as a reverse proxy (i.e. nginx) and is able to listen on port 80, then you do not need the `:1234` part of the hostname for the `lt` client.
 
+#### Enforcing Authorization
+
+If you want to secure the generation of web tunnels with an API key, you can do so by
+supplying an `API_KEY` environment variable, and specifying the flag: `--require-auth`.
+Be sure to use a sufficiently long and random string for this key!
+
 ## REST API
 
 ### POST /api/tunnels
