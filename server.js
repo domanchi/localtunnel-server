@@ -53,6 +53,20 @@ export default function(opt) {
     app.use(router.routes());
     app.use(router.allowedMethods());
 
+    /**
+     * @param {string} id requested ID; may not be respected if already exists.
+     * @param {string} host used for generating the new URL
+     * @returns {object}
+     */
+    async function createNewClientWithID(id, host) {
+        debug('making new client with id %s', id);
+        const info = await manager.newClient(id);
+
+        const url = `${schema}://${info.id}.${host}`;
+        info.url = url;
+        return info;
+    }
+
     // root endpoint
     app.use(async (ctx, next) => {
         const path = ctx.request.path;
@@ -65,13 +79,7 @@ export default function(opt) {
 
         const isNewClientRequest = ctx.query['new'] !== undefined;
         if (isNewClientRequest) {
-            const reqId = hri.random();
-            debug('making new client with id %s', reqId);
-            const info = await manager.newClient(reqId);
-
-            const url = schema + '://' + info.id + '.' + ctx.request.host;
-            info.url = url;
-            ctx.body = info;
+            ctx.body = await createNewClientWithID(hri.random(), ctx.request.host);
             return;
         }
 
@@ -104,12 +112,7 @@ export default function(opt) {
             return;
         }
 
-        debug('making new client with id %s', reqId);
-        const info = await manager.newClient(reqId);
-
-        const url = schema + '://' + info.id + '.' + ctx.request.host;
-        info.url = url;
-        ctx.body = info;
+        ctx.body = await createNewClientWithID(reqId, ctx.request.host);
         return;
     });
 
