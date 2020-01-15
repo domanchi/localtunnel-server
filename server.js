@@ -1,4 +1,3 @@
-import log from 'book';
 import Koa from 'koa';
 import tldjs from 'tldjs';
 import Debug from 'debug';
@@ -74,7 +73,7 @@ export default function(opt) {
         }
 
         debug('making new client with id %s', id);
-        const info = await manager.newClient(id);
+        const info = await manager.newClient(id, !!ctx.query.auth);
 
         const url = `${schema}://${info.id}.${ctx.request.host}`;
         info.url = url;
