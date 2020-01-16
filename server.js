@@ -41,7 +41,10 @@ export default function(opt) {
         const clientId = ctx.params.id;
         const client = manager.getClient(clientId);
         if (!client) {
-            ctx.throw(404);
+            ctx.statusCode = 404;
+            ctx.body = {
+                'error': 'client not found',
+            };
             return;
         }
 
