@@ -75,7 +75,7 @@ export default function(opt) {
         debug('making new client with id %s', id);
         const info = await manager.newClient(id, !!ctx.query.auth);
 
-        const url = `${schema}://${info.id}.${ctx.request.host}`;
+        const url = `${schema}://${info.id}.${opt.domain || ctx.request.host}`;
         info.url = url;
         ctx.body = info;
     }
