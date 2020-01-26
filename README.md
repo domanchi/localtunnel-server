@@ -1,5 +1,8 @@
 # localtunnel-server
 
+| :warning: This forked attempt has been abandoned. I have decided to pursue the solution with SSH Tunnels instead. You can read more about it at my blogpost: [How to Setup Webhooks to Private Networks](https://aaronloo.com/how-to-guide/private-network-webhooks) |
+| --- |
+
 [![Build Status](https://travis-ci.org/localtunnel/server.svg?branch=master)](https://travis-ci.org/localtunnel/server)
 
 localtunnel exposes your localhost to the world for easy testing and sharing! No need to mess with DNS or deploy just to have others test out your changes.
